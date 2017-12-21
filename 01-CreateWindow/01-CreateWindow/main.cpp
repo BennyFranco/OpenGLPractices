@@ -4,6 +4,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow *window);
 
 int main()
 {
@@ -36,6 +37,9 @@ int main()
 	// Main render loop
 	while (!glfwWindowShouldClose(window))
 	{
+		//Call processInput() method
+		processInput(window);
+
 		// Checks if any events are triggered (like keyboard input or mouse movement events), updates the window state, and calls the corresponding functions (which we can set via callback methods). 
 		glfwSwapBuffers(window);
 
@@ -55,4 +59,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// transformation) be mapped to (200,450) in screen coordinates. Note that processed coordinates in OpenGL are 
 	// between -1 and 1 so we effectively map from the range (-1 to 1) to (0, 800) and (0, 600).
 	glViewport(0, 0, width, height);
+}
+
+/*
+	We also want to have some form of input control in GLFW and we can achieve this several of GLFW's input functions. 
+	We'll be using GLFW's glfwGetKey function that takes the window as input together with a key. 
+	The function returns whether this key is currently being pressed.
+*/
+void processInput(GLFWwindow *window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
 }
