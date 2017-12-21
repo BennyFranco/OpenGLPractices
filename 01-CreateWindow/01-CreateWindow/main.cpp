@@ -40,6 +40,10 @@ int main()
 		//Call processInput() method
 		processInput(window);
 
+		// Rendering commands
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
+		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
+
 		// Checks if any events are triggered (like keyboard input or mouse movement events), updates the window state, and calls the corresponding functions (which we can set via callback methods). 
 		glfwSwapBuffers(window);
 
