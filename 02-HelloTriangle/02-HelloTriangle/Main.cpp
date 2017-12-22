@@ -17,6 +17,11 @@ const char* vertexShaderSource =
 "void main() \n"
 "{ gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0); } \n";
 
+const char* fragmentShaderSource =
+"#version 330 core\n"
+"out vec4 FragColor; \n"
+"void main()"
+"{ FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); } \n";
 
 int main()
 {
@@ -67,6 +72,29 @@ int main()
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
+
+	GLuint fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	GLuint shaderProgram;
+	shaderProgram = glCreateProgram();
+
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+	}
+
+	glUseProgram(shaderProgram);
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 
 	// Triangle vertices
 	float vertices[] = {
