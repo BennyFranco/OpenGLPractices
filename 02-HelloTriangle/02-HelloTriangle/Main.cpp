@@ -34,11 +34,10 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Set major version of OpenGL
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Set minor version of OpenGl
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Use core profile of OpenGL
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FOWARD_COMPAT, GL_TRUE); // Need it for macOS
 #endif
-
 														// Create the window object and check if this is valid before continue
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Window", NULL, NULL);
 	if (window == NULL)
@@ -91,8 +90,6 @@ int main()
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 	}
 
-	glUseProgram(shaderProgram);
-
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
@@ -103,11 +100,16 @@ int main()
 		0.0f,  0.5f, 0.0f
 	};
 
-	unsigned int VBO;
+	GLuint VBO, VAO;
+	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	// Main render loop
 	while (!glfwWindowShouldClose(window))
@@ -119,7 +121,10 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
 		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
 
-									  // Checks if any events are triggered (like keyboard input or mouse movement events), updates the window state, and calls the corresponding functions (which we can set via callback methods). 
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
 		glfwSwapBuffers(window);
 
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
