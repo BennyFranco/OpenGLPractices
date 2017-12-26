@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "Shader.h"
+
 #define WIDTH 800
 #define HEIGHT 600
 
@@ -63,42 +65,6 @@ int main()
 	// every window resize by registering it
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	GLuint fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	GLuint shaderProgram;
-	shaderProgram = glCreateProgram();
-
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
 	// Triangle vertices
 	/* float vertices[] = {
 		-0.5f, -0.5f, 0.0f,
@@ -125,6 +91,8 @@ int main()
 		0,1,3, //first triangle
 		1,2,3  //second triangle
 	};*/
+
+	Shader ourShader("./triangleShader.vs", "./triangleShader.fs");
 
 	GLuint VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -159,7 +127,9 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
 		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
 
-		glUseProgram(shaderProgram);
+		ourShader.use();
+
+		//glUseProgram(shaderProgram);
 
 		// Used for uniforms example
 		/*float timeValue = glfwGetTime();
