@@ -104,9 +104,11 @@ int main()
 	glEnableVertexAttribArray(2);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	GLuint texture;
+	GLuint texture, texture2;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -126,7 +128,9 @@ int main()
 	}
 
 	stbi_image_free(data);
-
+	ourShader.use();
+	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
+	ourShader.setInt("texture2", 1);
 	// Main render loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -137,9 +141,10 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
 		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
 
-		ourShader.use();
+
 
 		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
