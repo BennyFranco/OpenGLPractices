@@ -49,20 +49,6 @@ int main()
 	// every window resize by registering it
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// Triangle vertices
-	/* float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f
-	}; */
-
-	// Triangle vertices with colors
-	/* vertices[] = {
-		0.5f, -0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	// bottom right
-	   -0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	// bottom left
-		0.0f,  0.5f, 0.0f,	0.0f, 0.0f, 1.0f	// top
-	};*/
-
 	// Rectangle vertices
 	float vertices[] = {
 		0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,			// top right
@@ -102,13 +88,11 @@ int main()
 	// Texture attribute
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	GLuint texture, texture2;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
+	GLuint texture1, texture2;
+
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -116,7 +100,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load("./images/container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("./images/container.jpg", &width, &height, &nrChannels, 0); 
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -126,12 +110,33 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-
 	stbi_image_free(data);
+
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("./images/awesomeface.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
 	ourShader.use();
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
 	ourShader.setInt("texture2", 1);
-	// Main render loop
+
+	// Main render loop                                                  
 	while (!glfwWindowShouldClose(window))
 	{
 		//Call processInput() method
@@ -140,21 +145,27 @@ int main()
 		// Rendering commands
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
 		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
-
-
-
-		glBindTexture(GL_TEXTURE_2D, texture);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		ourShader.use();
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		//glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
 
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwPollEvents();
 	}
+
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 
 	// Clean and delete all resources allocated.
 	glfwTerminate();
