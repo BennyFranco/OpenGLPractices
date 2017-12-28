@@ -188,6 +188,8 @@ int main()
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
 	ourShader.setInt("texture2", 1);
 
+	glEnable(GL_DEPTH_TEST);
+
 	// Main render loop                                                  
 	while (!glfwWindowShouldClose(window))
 	{
@@ -196,7 +198,7 @@ int main()
 
 		// Rendering commands
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Set the clear color
-		glClear(GL_COLOR_BUFFER_BIT); // Clear the passed buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the passed buffer
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
