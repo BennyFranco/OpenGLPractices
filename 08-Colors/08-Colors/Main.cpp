@@ -24,6 +24,9 @@ float lastFrame = 0.0f;
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 bool firstMouse = true;
 
+//glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -132,9 +135,10 @@ int main()
 	glGenVertexArrays(1, &VAO);
 	glGenVertexArrays(1, &lightVAO);
 
-	glGenBuffers(1, &VBO);
-
 	glBindVertexArray(VAO);
+	glBindVertexArray(lightVAO);
+
+	glGenBuffers(1, &VBO);	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -161,12 +165,14 @@ int main()
 		lastFrame = currentFrame;
 
 		ourShader.use();
-		glBindVertexArray(VAO);
+		ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 		glm::mat4 model;
 		model = glm::translate(model, cubePositions[0]);
-		//GLfloat angle = -50.0f;
-		//model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+
+		GLfloat angle = -50.0f;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 		ourShader.setMat4("model", model);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -183,6 +189,22 @@ int main()
 		GLint projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
+		lightShader.use();
+		model = glm::mat4();
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+
+		lightShader.setMat4("model", model);
+
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		viewLoc = glGetUniformLocation(lightShader.ID, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+		projectionLoc = glGetUniformLocation(lightShader.ID, "projection");
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
 		glfwSwapBuffers(window);
 
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
@@ -191,7 +213,6 @@ int main()
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	//glDeleteBuffers(1, &EBO);
 
 	// Clean and delete all resources allocated.
 	glfwTerminate();
