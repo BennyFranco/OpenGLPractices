@@ -29,8 +29,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 int main()
 {
