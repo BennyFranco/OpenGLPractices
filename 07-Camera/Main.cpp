@@ -44,9 +44,10 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Use core profile of OpenGL
 
 #ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FOWARD_COMPAT, GL_TRUE); // Need it for macOS
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Need it for macOS
 #endif
-														// Create the window object and check if this is valid before continue
+	
+	// Create the window object and check if this is valid before continue
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, WINDOW_TITLE, NULL, NULL);
 	if (window == NULL)
 	{
@@ -272,7 +273,6 @@ The function returns whether this key is currently being pressed.
 */
 void processInput(GLFWwindow *window)
 {
-	float cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
