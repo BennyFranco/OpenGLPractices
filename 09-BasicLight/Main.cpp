@@ -165,6 +165,7 @@ int main()
 		ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 		ourShader.setVec3("lightPos", lightPos);
+		ourShader.setVec3("viewPos", camera.Position);
 
 		glm::mat4 model;
 		model = glm::translate(model, cubePositions[0]);
