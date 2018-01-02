@@ -127,10 +127,13 @@ int main()
 		glm::vec3(1.5f,  0.2f, -1.5f),
 		glm::vec3(-1.3f,  1.0f, -1.5f)*/
 	};
-
+#ifdef __APPLE__
 	Shader ourShader("./triangleShader.vs", "./triangleShader.fs");
 	Shader lightShader("./lightShader.vs", "./lightShader.fs");
-
+#else
+	Shader ourShader("../triangleShader.vs", "../triangleShader.fs");
+	Shader lightShader("../lightShader.vs", "../lightShader.fs");
+#endif
 	GLuint VBO, VAO, lightVAO;
 	glGenVertexArrays(1, &VAO);
 	glGenVertexArrays(1, &lightVAO);
