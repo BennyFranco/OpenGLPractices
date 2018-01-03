@@ -133,7 +133,8 @@ int main()
 	Shader ourShader("./triangleShader.vs", "./triangleShader.fs");
 	Shader lightShader("./lightShader.vs", "./lightShader.fs");
 #else
-	Shader ourShader("../triangleShader.vs", "../triangleShader.fs");
+	// Shader ourShader("../triangleShader.vs", "../triangleShader.fs");
+	Shader ourShader("../triangleShader.vs", "../shaders/lights/directional.fs");
 	Shader lightShader("../lightShader.vs", "../lightShader.fs");
 #endif
 	GLuint VBO, VAO, lightVAO;
@@ -183,12 +184,16 @@ int main()
 		lastFrame = currentFrame;
 
 		ourShader.use();
-		ourShader.setVec3("light.position", lightPos);
+		
+		// ourShader.setVec3("light.position", lightPos); // No necessery for directional light
 		ourShader.setVec3("viewPos", camera.Position);
 
 		ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 		ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
 		ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+		// Directional light values
+		ourShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
 
 		ourShader.setFloat("material.shininess", 64.0f);
 		

@@ -38,6 +38,9 @@
     <Filter Include="Resources\Shaders">
       <UniqueIdentifier>{040215d9-c7f2-4f59-ab13-5deadf6aa5ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resources\Shaders\Lights">
+      <UniqueIdentifier>{d5e6579a-209f-4199-b96f-0b7820e71f4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\lightShader.fs">
@@ -51,6 +54,9 @@
     </None>
     <None Include="..\triangleShader.vs">
       <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="..\shaders\lights\directional.fs">
+      <Filter>Resources\Shaders\Lights</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

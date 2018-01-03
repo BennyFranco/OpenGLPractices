@@ -324,6 +324,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <None Include="..\lightShader.fs" />
     <None Include="..\lightShader.vs" />
+    <None Include="..\shaders\lights\directional.fs" />
     <None Include="..\triangleShader.fs" />
     <None Include="..\triangleShader.vs" />
   </ItemGroup>
