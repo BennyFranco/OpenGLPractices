@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="E:\experiments\OpenGLPractices\12-LightCasters\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\experiments\OpenGLPractices\12-LightCasters\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\experiments\OpenGLPractices\12-LightCasters\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="E:\experiments\OpenGLPractices\12-LightCasters\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\experiments\OpenGLPractices\12-LightCasters\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\experiments\OpenGLPractices\12-LightCasters\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C0A0DC60-BE6A-3E29-8BE5-345BE20BBA67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{891C4F66-1BC5-35BF-9664-592A655C8E09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{1e2df838-f80c-418d-8a93-a34580357376}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Images">
+      <UniqueIdentifier>{5559e6be-5e7b-4129-a1fc-0a57a6fba690}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Shaders">
+      <UniqueIdentifier>{040215d9-c7f2-4f59-ab13-5deadf6aa5ac}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\lightShader.fs">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="..\lightShader.vs">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="..\triangleShader.fs">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+    <None Include="..\triangleShader.vs">
+      <Filter>Resources\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\images\container2.png">
+      <Filter>Resources\Images</Filter>
+    </Image>
+    <Image Include="..\images\container2_specular.png">
+      <Filter>Resources\Images</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
