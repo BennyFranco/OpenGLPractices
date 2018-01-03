@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (12-LightCasters)
+project (13-MultipleLights)
 
 set(SOURCES Camera.cpp Camera.h Shader.cpp Shader.h Main.cpp)
 
