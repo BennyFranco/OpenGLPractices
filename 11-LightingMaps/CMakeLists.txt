@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (10-Materials)
+project (11-LightingMaps)
 
 set(SOURCES Camera.cpp Camera.h Shader.cpp Shader.h Main.cpp)
 
