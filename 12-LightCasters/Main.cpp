@@ -24,7 +24,7 @@ float lastFrame = 0.0f;
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 bool firstMouse = true;
 
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(0.0f, 0.0f, 7.0f);
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -134,7 +134,8 @@ int main()
 	Shader lightShader("./lightShader.vs", "./lightShader.fs");
 #else
 	// Shader ourShader("../triangleShader.vs", "../triangleShader.fs");
-	Shader ourShader("../triangleShader.vs", "../shaders/lights/directional.fs");
+	// Shader ourShader("../triangleShader.vs", "../shaders/lights/directional.fs");
+	Shader ourShader("../triangleShader.vs", "../shaders/lights/point.fs");
 	Shader lightShader("../lightShader.vs", "../lightShader.fs");
 #endif
 	GLuint VBO, VAO, lightVAO;
@@ -185,7 +186,7 @@ int main()
 
 		ourShader.use();
 		
-		// ourShader.setVec3("light.position", lightPos); // No necessery for directional light
+		ourShader.setVec3("light.position", lightPos); // No necessery for directional light
 		ourShader.setVec3("viewPos", camera.Position);
 
 		ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
@@ -193,10 +194,33 @@ int main()
 		ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
 		// Directional light values
-		ourShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+		// ourShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
 
-		ourShader.setFloat("material.shininess", 64.0f);
+		// Point light values
+		ourShader.setFloat("light.constant", 1.0f);
+		ourShader.setFloat("light.linear", 0.09f);
+		ourShader.setFloat("light.quadratic", 0.032f);
+
+		ourShader.setFloat("material.shininess", 32.0f);
+
+		glm::mat4 view;
+		view = camera.GetViewMatrix();
+
+		glm::mat4 projection;
+		projection = glm::perspective(glm::radians(camera.Zoom), static_cast<float>(WIDTH / HEIGHT), 0.1f, 100.0f);
 		
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+
+		glm::mat4 model;
+		ourShader.setMat4("model", model);
+
 		for (GLuint i = 0; i < 10; i++)
 		{
 			glm::mat4 model;
@@ -207,45 +231,24 @@ int main()
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
-
-		glm::mat4 view;
-		view = camera.GetViewMatrix();
-
-		glm::mat4 projection;
-		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH / HEIGHT), 0.1f, 100.0f);
-
-		GLint viewLoc = glGetUniformLocation(ourShader.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		GLint projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		
+		glBindVertexArray(VAO);
 
 		lightShader.use();
-		glm::mat4 model;
+		lightShader.setMat4("projection", projection);
+		lightShader.setMat4("view", view);
+
+		//glm::mat4 model;
 		model = glm::mat4();
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
-
 		lightShader.setMat4("model", model);
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		viewLoc = glGetUniformLocation(lightShader.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		projectionLoc = glGetUniformLocation(lightShader.ID, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glfwSwapBuffers(window);
-
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
+		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
