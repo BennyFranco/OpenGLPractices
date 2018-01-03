@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="E:\experiments\OpenGLPractices\13-MultipleLights\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\experiments\OpenGLPractices\13-MultipleLights\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\experiments\OpenGLPractices\13-MultipleLights\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="E:\experiments\OpenGLPractices\13-MultipleLights\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\experiments\OpenGLPractices\13-MultipleLights\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\experiments\OpenGLPractices\13-MultipleLights\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4E1D5D2E-40CF-370D-A051-060319E411B8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{8FAFDCD6-1029-3708-BA81-94D0954AACC8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{d1b5667a-f691-4d43-9984-d85ad3d8bf76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Images">
+      <UniqueIdentifier>{63ba383a-3b6b-4e52-a91a-e97e2bd8f06c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Shaders">
+      <UniqueIdentifier>{5c271063-8b1c-4bdd-a12a-cd3516b4281f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\images\container2.png">
+      <Filter>Resources\Images</Filter>
+    </Image>
+    <Image Include="..\images\container2_specular.png">
+      <Filter>Resources\Images</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
