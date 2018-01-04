@@ -1,5 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <vector>
 #include <string>
