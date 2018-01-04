@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+
 #include "Shader.h"
 #include "Mesh.h"
 
