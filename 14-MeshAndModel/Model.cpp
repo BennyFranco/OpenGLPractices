@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+std::vector<Texture> textures_loaded;
+
 Model::Model(char* path)
 {
     loadModel(path);
@@ -93,8 +95,40 @@ Meshs Model::processMesh(aiMesh * mesh, const aiScene * scene)
     //process material
     if(mesh->mMaterialIndex >= 0)
     {
-
+        aiMaterial * material = scene->mMaterials[mesh->mMaterialIndex];
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffsueMaps.end());
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
     return Mesh(vertices, indices, textures);
+}
+
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName)
+{
+    std::vector<Texture> textures;
+    for(unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+    {
+        aiString str;
+        mat->GetTexture(type, i &str);
+        bool skip = false;
+        for(unsigned int j = 0; j < textures_loaded.size(); j++)
+        {
+            textures.push_back(textures_loaded[j]);
+            skip = true;
+            break;
+        }
+
+        if(!skip)
+        {
+            Texture texture;
+            textire.id = TextureFormFile(str.c_str(), directory);
+            texture.type = typeName;
+            texture.path = str;
+            textures.push_back(texture);
+        }
+    }
+
+    return textures;
 }

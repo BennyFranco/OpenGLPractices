@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (14-MeshAndModel)
 
-set(HEADERS Camera.h Shader.h Mesh.h)
-set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp)
+set(HEADERS Camera.h Shader.h Mesh.h Model.h)
+set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp Model.cpp)
 
 add_library(glew32 STATIC IMPORTED)
 add_library(glfw3 STATIC IMPORTED)
