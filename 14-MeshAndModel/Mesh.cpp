@@ -48,11 +48,11 @@ void Mesh::Draw(Shader shader)
         glActiveTexture(GL_TEXTURE0 + i);
 
         std::string number;
-        std::string name = textures[i].type
+		std::string name = textures[i].type;
 
         if(name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
-        elseif(name == "texture_specular")
+        else if(name == "texture_specular")
             number = std::to_string(specularNr++);
         
         shader.setFloat(("material."+name+number).c_str(), i);

@@ -6,6 +6,7 @@ set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp Model.cpp)
 
 add_library(glew32 STATIC IMPORTED)
 add_library(glfw3 STATIC IMPORTED)
+add_library(assimp STATIC IMPORTED)
 
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR} "../include")
@@ -15,8 +16,9 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 if(WIN32)
     set_target_properties(glew32 PROPERTIES IMPORTED_LOCATION "..\\..\\lib\\Win32\\glew32s.lib")
     set_target_properties(glfw3 PROPERTIES IMPORTED_LOCATION "..\\..\\lib\\Win32\\glfw3.lib")
+    set_target_properties(assimp PROPERTIES IMPORTED_LOCATION "..\\..\\lib\\Win32\\assimp-vc140-mt.lib")
 
-    target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew32 glfw3)
+    target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} glew32 glfw3 assimp)
     
     set(BUILD_DIR "./Debug")
 
