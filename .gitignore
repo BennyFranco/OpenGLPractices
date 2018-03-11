@@ -114,6 +114,7 @@ Temporary Items
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+*.code-workspace
 
 ### Windows ###
 # Windows thumbnail cache files
