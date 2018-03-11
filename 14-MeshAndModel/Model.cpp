@@ -100,7 +100,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
     }
 
     //process material
-    if(mesh->mMaterialIndex >= 0)
+    if(mesh->mMaterialIndex)
     {
         aiMaterial * material = scene->mMaterials[mesh->mMaterialIndex];
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");

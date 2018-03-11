@@ -25,9 +25,10 @@ if(WIN32)
 elseif(APPLE)
     set_target_properties(glew32 PROPERTIES IMPORTED_LOCATION "../../lib/Unix/libGLEW.a")
     set_target_properties(glfw3 PROPERTIES IMPORTED_LOCATION "../../lib/Unix/libglfw3.a")
+    set_target_properties(assimp PROPERTIES IMPORTED_LOCATION "../../lib/Unix/libassimp.dylib")
 
     set(CMAKE_CXX_FLAGS "-framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo")
-    target_link_libraries(${PROJECT_NAME} glew32 glfw3)
+    target_link_libraries(${PROJECT_NAME} glew32 glfw3 assimp)
     set(BUILD_DIR ".")
 endif()
 

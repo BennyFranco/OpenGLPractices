@@ -73,7 +73,7 @@ int main()
 
 #ifdef __APPLE__
 	Shader ourShader("../shaders/model.vs", "../shaders/model.fs");
-	Shader lightShader("./shaders/lamp.vs", "./shaders/lamp.fs");
+	Shader lightShader("../shaders/lamp.vs", "../shaders/lamp.fs");
 #else
 	Shader ourShader("../shaders/model.vs", "../shaders/model.fs");
 	Shader lightShader("../shaders/lamp.vs", "../shaders/lamp.fs");
