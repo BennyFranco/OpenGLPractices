@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <map>
 
 #include "Shader.h"
 #include "Camera.h"
@@ -73,6 +74,8 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
 	Shader shader("../shaders/cube_shader.vs", "../shaders/cube_shader.fs");
 
@@ -183,14 +186,14 @@ int main()
 
 	GLuint cubeTexture = load_texture("../images/marble.jpg");
 	GLuint floorTexture = load_texture("../images/metal.png");
-    GLuint transparentTexture = load_texture("../images/grass.png");
+    GLuint transparentTexture = load_texture("../images/window.png");
 
-    std::vector<glm::vec3> vegetation;
-    vegetation.push_back(glm::vec3(-1.5f,  0.0f, -0.48f));
-    vegetation.push_back(glm::vec3( 1.5f,  0.0f,  0.51f));
-    vegetation.push_back(glm::vec3( 0.0f,  0.0f,  0.7f));
-    vegetation.push_back(glm::vec3(-0.3f,  0.0f, -2.3f));
-    vegetation.push_back(glm::vec3( 0.5f,  0.0f, -0.6f));  
+    std::vector<glm::vec3> windows;
+    windows.push_back(glm::vec3(-1.5f,  0.0f, -0.48f));
+    windows.push_back(glm::vec3( 1.5f,  0.0f,  0.51f));
+    windows.push_back(glm::vec3( 0.0f,  0.0f,  0.7f));
+    windows.push_back(glm::vec3(-0.3f,  0.0f, -2.3f));
+    windows.push_back(glm::vec3( 0.5f,  0.0f, -0.6f));
 
 	shader.use();
     shader.setInt("texture1", 0);
@@ -204,6 +207,13 @@ int main()
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < windows.size(); i++)
+        {
+            float distance = glm::length(camera.Position - windows[i]);
+            sorted[distance] = windows[i];
+        }
 
 		// Rendering commands
 		glClearColor(0.1f, 0.1, 0.1f, 1.0f); // Set the clear color
@@ -239,10 +249,10 @@ int main()
         // Vegetation
         glBindVertexArray(transparentVAO);
         glBindTexture(GL_TEXTURE_2D, transparentTexture);
-        for (GLuint i = 0; i < vegetation.size(); i++)
+        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
         {
             model = glm::mat4();
-            model = glm::translate(model, vegetation[i]);
+            model = glm::translate(model, it->second);
             shader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }

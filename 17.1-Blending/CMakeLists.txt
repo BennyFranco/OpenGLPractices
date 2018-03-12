@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (17-Blending)
+project (17.1-Blending)
 
 set(HEADERS Camera.h Shader.h Mesh.h )
 set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp )
