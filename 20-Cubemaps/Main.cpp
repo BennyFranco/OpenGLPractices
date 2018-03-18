@@ -203,6 +203,13 @@ int main()
     faces.push_back("../images/skybox/front.jpg");
     faces.push_back("../images/skybox/back.jpg");
 
+    /* faces.push_back("../images/blood/blood_rt.tga");
+    faces.push_back("../images/blood/blood_lf.tga");
+    faces.push_back("../images/blood/blood_up.tga");
+    faces.push_back("../images/blood/blood_dn.tga");
+    faces.push_back("../images/blood/blood_ft.tga");
+    faces.push_back("../images/blood/blood_bk.tga"); */
+
     GLuint cubemapTexture = loadCubemap(faces);  
 
 	shader.use();
@@ -229,21 +236,7 @@ int main()
         glm::mat4 view;
         glm::mat4 projection;
 
-        // draw skybox as last
-        glDepthMask(GL_FALSE);
-        skyboxShader.use();
         projection = glm::perspective(glm::radians(camera.Zoom), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
-        // skybox cube
-        glBindVertexArray(skyboxVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-        glDepthMask(GL_TRUE);
-
         // draw scene as normal
         shader.use();
         view = camera.GetViewMatrix();
@@ -257,6 +250,22 @@ int main()
         glBindTexture(GL_TEXTURE_2D, cubeTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
+
+        // draw skybox as last
+        // glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+        // skybox cube
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); 
+        // glDepthMask(GL_TRUE);
 
         //  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
