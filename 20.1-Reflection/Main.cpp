@@ -212,7 +212,7 @@ int main()
     GLuint cubemapTexture = loadCubemap(faces);  
 
 	shader.use();
-    shader.setInt("texture1", 0);
+    shader.setInt("skybox", 0);
     
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -243,6 +243,7 @@ int main()
         shader.setMat4("model", model);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
+        shader.setVec3("cameraPos", camera.Position);
        
         // cubes
         glBindVertexArray(cubeVAO);
@@ -251,11 +252,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);		
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-
         // draw skybox as last
-        // glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
         view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
@@ -268,7 +265,6 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); 
-        // glDepthMask(GL_TRUE);
 
         //  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
