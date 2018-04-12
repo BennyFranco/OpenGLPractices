@@ -1,0 +1,24 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build 22 - Geometry Shaders",
+            "type": "shell",
+            "command": "msbuild  ${workspaceFolder}/22-GeometryShaders/build/22-GeometryShader.sln",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Build 23 - Instancing",
+            "type": "shell",
+            "command": "msbuild  ${workspaceFolder}/23-Instancing/build/23-Instancing.sln",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
