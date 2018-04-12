@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (22-GeometryShader)
+project (23-Instancing)
 
 set(HEADERS Camera.h Shader.h Mesh.h )
 set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp )
