@@ -6,19 +6,27 @@
         {
             "label": "Build 22 - Geometry Shaders",
             "type": "shell",
-            "command": "msbuild  ${workspaceFolder}/22-GeometryShaders/build/22-GeometryShader.sln",
-            "group": {
-                "kind": "build"
-            }
+            "command": "msbuild  ${workspaceFolder}/22-GeometryShaders/build/22-GeometryShader.sln"
         },
         {
             "label": "Build 23 - Instancing",
             "type": "shell",
-            "command": "msbuild  ${workspaceFolder}/23-Instancing/build/23-Instancing.sln",
+            "command": "msbuild  ${workspaceFolder}/23-Instancing/build/23-Instancing.sln"
+        },
+        {
+            "label": "Build 23.1 - Asteroids",
+            "type": "shell",
+            "command": "msbuild  ${workspaceFolder}/23.1-Asteroids/build/23.1-Asteroids.sln",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
-        }
+        },
+        {
+            "label": "Copy assimp DLL",
+            "type": "shell",
+            "command": "cp  ${workspaceFolder}/lib/win32/assimp-vc140-mt.dll  ${workspaceFolder}/23.1-Asteroids/build/Debug/",
+            "group": "build"
+        },
     ]
 }

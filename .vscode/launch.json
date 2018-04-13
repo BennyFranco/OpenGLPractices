@@ -8,6 +8,17 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
+            "program": "${workspaceFolder}/23.1-Asteroids/build/Debug/23.1-Asteroids.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/23.1-Asteroids/build/",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
+            "name": "(Windows) Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
             "program": "${workspaceFolder}/23-Instancing/build/Debug/23-Instancing.exe",
             "args": [],
             "stopAtEntry": false,
