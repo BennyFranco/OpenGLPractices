@@ -77,7 +77,9 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Shader shader("../shaders/gama_correction.vs", "../shaders/gama_correction.fs");
 
@@ -139,7 +141,7 @@ int main()
 		lastFrame = currentFrame;
 
 		// Rendering commands
-		glClearColor(0.0f, 0.0, 0.0f, 1.0f); // Set the clear color
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Set the clear color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 		
         glm::mat4 view = camera.GetViewMatrix();
@@ -150,7 +152,7 @@ int main()
         shader.setMat4("projection", projection);
         shader.setVec3("viewPos", camera.Position);
         glUniform3fv(glGetUniformLocation(shader.ID, "lightPositions"), 4, &lightPos[0][0]);
-        glUniform3fv(glGetUniformLocation(shader.ID, "lightColors"), 4, &lightPos[0][0]);
+        glUniform3fv(glGetUniformLocation(shader.ID, "lightColors"), 4, &lightColors[0][0]);
         shader.setInt("gamma", gammaEnabled);
         shader.setInt("blinn", blinn);
 
