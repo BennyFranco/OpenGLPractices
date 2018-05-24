@@ -84,7 +84,8 @@ int main()
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Shader shader("../shaders/shadow.vs", "../shaders/shadow.fs");
+    Shader lightShader ("../shaders/light.vs", "../shaders/light.fs");
+	Shader shadowShader("../shaders/shadow.vs", "../shaders/shadow.fs");
     Shader debugDepthQuad("../shaders/debug_quad.vs", "../shaders/debug_quad.fs");
 
     float planeVertices[] = {
@@ -113,6 +114,7 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glBindVertexArray(0);
 
+    // configure depth map FBO
     unsigned int depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
 
@@ -127,6 +129,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+    // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE);
@@ -134,13 +137,12 @@ int main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
 	GLuint floorTexture = load_texture("../images/wood.png", false);
-    // GLuint floorTextureGammaCorrected = load_texture("../images/wood.png", true);
-
-	//shader.use();
-    //shader.setInt("texture1", 0);
 
     glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
 
+    lightShader.use();
+    lightShader.setInt("diffuseTexture", 0);
+    lightShader.setInt("shadowMap", 1);
     debugDepthQuad.use();
     debugDepthQuad.setInt("depthMap", 0);
 	
@@ -167,20 +169,38 @@ int main()
         lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
 
-        shader.use();
-        shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        shadowShader.use();
+        shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
         glViewport(0, 0, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, floorTexture);
-            renderScene(shader);
+            renderScene(shadowShader);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Reset viewport
         glViewport(0, 0, WIDTH, HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // 2. render scene as normal
+        glViewport(0, 0, WIDTH, HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightShader.use();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        // set light unifroms
+        lightShader.setVec3("viewPos", camera.Position);
+        lightShader.setVec3("lightPos", lightPos);
+        lightShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        renderScene(lightShader);
 
         // Debug depth map 
         debugDepthQuad.use();
@@ -188,7 +208,7 @@ int main()
         debugDepthQuad.setFloat("far_plane", far_plane);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, depthMap);
-        renderQuad();
+        // renderQuad();
 
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
