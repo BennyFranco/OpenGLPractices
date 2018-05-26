@@ -9,6 +9,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <libtiff/tiff.h>
+#include <libtiff/tiffio.h>
+#include <libtiff/tiffconf.h>
+
 #include <iostream>
 
 #include "Shader.h"
@@ -20,6 +24,9 @@
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+unsigned int screenshotCounter = 0;
+bool isScreenShotTaken = false;
 
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 bool firstMouse = true;
@@ -36,6 +43,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 GLuint load_texture(const char *path);
 unsigned int loadCubemap(std::vector<std::string> faces);
+int SaveScreenshot(std::string filename, std::string description, int x, int y, int width, int height);
 
 int main()
 {
@@ -298,6 +306,13 @@ The function returns whether this key is currently being pressed.
 void processInput(GLFWwindow *window)
 {
 	float cameraSpeed = 2.5f * deltaTime;
+    if(glfwGetKey(window, GLFW_KEY_F12) == GLFW_PRESS && !isScreenShotTaken)
+    {
+        ++screenshotCounter;
+        std::string filename ("Screenshot" + std::to_string(screenshotCounter) + ".tiff");
+        SaveScreenshot(filename, "A screen shot", 0, 0, WIDTH, HEIGHT);
+        isScreenShotTaken = !isScreenShotTaken;
+    }
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -406,4 +421,49 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+int SaveScreenshot(std::string filename, std::string description, int x, int y, int width, int height)
+{
+    TIFF *file;
+    int i;
+    GLubyte *image, *p;
+
+    file = TIFFOpen(filename.c_str(), "w");
+    if (file == NULL) {
+        return 1;
+    }
+
+    /* OpenGL's default 4 byte pack alignment would leave extra bytes at the
+        end of each image row so that each full row contained a number of bytes
+        divisible by 4.  Ie, an RGB row with 3 pixels and 8-bit componets would
+        be laid out like "RGBRGBRGBxxx" where the last three "xxx" bytes exist
+        just to pad the row out to 12 bytes (12 is divisible by 4). To make sure
+        the rows are packed as tight as possible (no row padding), set the pack
+        alignment to 1. */
+
+    image = (GLubyte *) malloc(width * height * sizeof(GLubyte) * 3);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+    TIFFSetField(file, TIFFTAG_IMAGEWIDTH, (unsigned int) width);
+    TIFFSetField(file, TIFFTAG_IMAGELENGTH, (unsigned int) height);
+    TIFFSetField(file, TIFFTAG_BITSPERSAMPLE, 8);
+    TIFFSetField(file, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+    TIFFSetField(file, TIFFTAG_SAMPLESPERPIXEL, 3);
+    TIFFSetField(file, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+    TIFFSetField(file, TIFFTAG_ROWSPERSTRIP, 1);
+    TIFFSetField(file, TIFFTAG_IMAGEDESCRIPTION, description.c_str());
+
+    p = image;
+    for (i = height - 1; i >= 0; i--) {
+        if (TIFFWriteScanline(file, p, i, 0) < 0) {
+        free(image);
+        TIFFClose(file);
+        return 1;
+        }
+        p += width * sizeof(GLubyte) * 3;
+    }
+    TIFFClose(file);
+    return 0;
 }
