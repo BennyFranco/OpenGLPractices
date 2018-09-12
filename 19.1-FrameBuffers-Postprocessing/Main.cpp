@@ -76,7 +76,36 @@ int main()
 
 	Shader shader("../shaders/framebuffers.vs", "../shaders/framebuffers.fs");
     Shader shader_screen("../shaders/framebuffers_screen.vs", "../shaders/framebuffers_screen.fs");
+    Shader rectangle("../shaders/rectangle.vs", "../shaders/rectangle.fs");
 
+// Rectangle vertices
+	float vertices[] = {
+		1.0f,  1.0f, 0.0f,  // top right
+		1.0f, 0.72f, 0.0f,  // bottom right
+		-1.0f, 0.72f, 0.0f,  // bottom left
+		-1.0f,  1.0f, 0.0f   // top left 
+	};
+
+	GLuint indices[] = {
+		0,1,3, //first triangle
+		1,2,3  //second triangle
+	};
+
+	GLuint VBO, VAO, EBO;
+	glGenVertexArrays(1, &VAO);
+
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	float cubeVertices[] = {
         // positions          // texture Coords
@@ -218,9 +247,6 @@ int main()
 	    std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
-    // draw as wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 // Main render loop                                                  
 	while (!glfwWindowShouldClose(window))
 	{
@@ -274,6 +300,14 @@ int main()
         glBindVertexArray(quadVAO);
         glBindTexture(GL_TEXTURE_2D, texColorBuffer);	// use the color attachment texture as the texture of the quad plane
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        rectangle.use();
+        glEnable(GL_BLEND); //Enable blending.
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //Set blending function.
+        glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
         
         //  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
