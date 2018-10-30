@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <chrono>
 
 #include "Shader.h"
 #include "Camera.h"
@@ -18,8 +19,13 @@
 #define HEIGHT 600
 #define WINDOW_TITLE "PointShadows"
 
+using FrameTime = float;
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// Frametime calculations
+constexpr float ftStep{0.1f}, ftSlice{0.1f};
 
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 bool firstMouse = true;
@@ -113,24 +119,27 @@ int main()
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-    //glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
     glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
     
     lightShader.use();
     lightShader.setInt("diffuseTexture", 0);
     lightShader.setInt("depthMap", 1);
-    // debugDepthQuad.use();
-    // debugDepthQuad.setInt("depthMap", 0);
+
+    FrameTime lastFrametime{0.f}, currentSlice{0.f};
 
 // Main render loop                                                  
 	while (!glfwWindowShouldClose(window))
 	{
-		//Call processInput() method
-		processInput(window);
+        currentSlice += lastFrametime;
 
-		float currentFrame = (float)glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+        // Start of time interval
+       auto timePoint1(std::chrono::high_resolution_clock::now());
+
+        //Call processInput() method
+		processInput(window);
+		
+
+		//lastFrame = currentFrame;
 
         lightPos.z = sin(glfwGetTime() * 0.5) * 3.0;
 
@@ -187,6 +196,31 @@ int main()
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+        // End of interval
+        auto timePoint2(std::chrono::high_resolution_clock::now());
+
+        // Calculate the elapsed time in milliseconds
+        // substract two std::chrono::time_point objects
+        // return a std::chrono::duration object, wich
+        // represent a period.
+        auto elapsedTime(timePoint2 - timePoint1);
+
+        // Convert a duration to float using
+        // the safe cast function chrono::duration_cast
+        FrameTime ft{std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(elapsedTime).count()};
+
+        //lastFrametime = ft;
+        // We can approximate the fps by dividing 1.f by the elapsed seconds
+        // calculated by convert ft to seconds.
+        auto ftSeconds(ft / 1000.f);
+        auto fps(1.f / ftSeconds);
+
+        float currentFrame = (float)glfwGetTime();
+		deltaTime = ftStep;
+
+        std::string fps_string = "FT: " + std::to_string(ft) + "\t FPS: " + std::to_string(fps);
+        glfwSetWindowTitle(window, fps_string.c_str());
 	}
 
 	// Clean and delete all resources allocated.
