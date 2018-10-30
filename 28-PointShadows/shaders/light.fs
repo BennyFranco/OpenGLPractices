@@ -31,8 +31,25 @@ float ShadowCalculation(vec3 fragPos)
     float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;        
     // display closestDepth as debug (to visualize depth cubemap)
     // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
-        
-    return shadow;
+
+    float samples = 4.0;
+    float offset  = 0.1;
+    for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+    {
+        for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+        {
+            for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+            {
+                float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; 
+                closestDepth *= far_plane;   // Undo mapping [0;1]
+                if(currentDepth - bias > closestDepth)
+                    shadow += 1.0;
+            }
+        }
+    }
+    shadow /= (samples * samples * samples);
+            
+        return shadow;
 }
 
 void main()
