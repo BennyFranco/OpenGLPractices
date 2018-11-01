@@ -94,9 +94,13 @@ int main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    GLuint diffuseMap = load_texture("../images/bricks2.jpg");
-    GLuint normalMap = load_texture("../images/bricks2_normal.jpg");
-    GLuint depthMap = load_texture("../images/bricks2_disp.jpg");
+    // GLuint diffuseMap = load_texture("../images/bricks2.jpg");
+    // GLuint normalMap = load_texture("../images/bricks2_normal.jpg");
+    // GLuint depthMap = load_texture("../images/bricks2_disp.jpg");
+
+    GLuint diffuseMap = load_texture("../images/toy_box_diffuse.png");
+    GLuint normalMap = load_texture("../images/toy_box_normal.png");
+    GLuint depthMap = load_texture("../images/toy_box_disp.png");
 
     Shader shader("../shaders/normalMapping.vs", "../shaders/normalMapping.fs");
 
