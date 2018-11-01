@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (29.1-NormalMapping)
 
-set(HEADERS Camera.h Shader.h Mesh.h )
-set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp )
+set(HEADERS Camera.h Shader.h Mesh.h Model.h )
+set(SOURCES Camera.cpp Shader.cpp Main.cpp Mesh.cpp Model.cpp)
 
 set(CMAKE_BUILD_TYPE Debug FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")

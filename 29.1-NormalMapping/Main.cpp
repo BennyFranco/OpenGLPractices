@@ -14,6 +14,7 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "Model.h"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -24,7 +25,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // Frametime calculations
-constexpr float ftStep{0.1f}, ftSlice{0.1f};
+constexpr float ftStep{0.1f}, ftSlice{0.01f};
 std::string windowTitle("Normal Mapping");
 
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
@@ -96,25 +97,28 @@ int main()
 
     GLuint diffuseMap = load_texture("../images/brickwall.jpg");
     GLuint normalMap = load_texture("../images/brickwall_normal.jpg");
+    
+    Model cyborgModel("../models/cyborg/cyborg.obj");
+    Model nanoSuitModel("../models/nanosuit/nanosuit.obj");
 
     Shader shader("../shaders/normalMapping.vs", "../shaders/normalMapping.fs");
 
-    shader.use();
-    shader.setInt("diffuseMap", 0);
-    shader.setInt("normalMap", 1);
+   glm::vec3 lightPos(0.0f, 1.0f, -5.0f);
 
-    glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // Main render loop                                                  
 	while (!glfwWindowShouldClose(window))
 	{
         currentSlice += lastFrametime;
 
+        float currentFrame = (float)glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
         // Start of time interval
        auto timePoint1(std::chrono::high_resolution_clock::now());
-
+ 
         //Call processInput() method
 		processInput(window);
 
@@ -131,23 +135,26 @@ int main()
        
         // render normal-mapped quad
         glm::mat4 model;
-        model = glm::rotate(model, glm::radians((float)glfwGetTime() * -10.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0))); // rotate the quad to show normal mapping from multiple directions
+        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        //model = glm::rotate(model, glm::radians((float)glfwGetTime() * -10.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0))); // rotate the quad to show normal mapping from multiple directions
         
         shader.setMat4("model", model);
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("lightPos", lightPos);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, normalMap);
-        renderQuad();
+        nanoSuitModel.Draw(shader);
 
         // render light source (simply re-renders a smaller plane at the light's position for debugging/visualization)
         model = glm::mat4();
         model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.1f));
+        model = glm::scale(model, glm::vec3(1.0f));
         shader.setMat4("model", model);
-        renderQuad();
+        // shader.setInt("Material.diffuse", 0);
+        // shader.setInt("Material.normal", 1);
+        // glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        // glActiveTexture(GL_TEXTURE1);
+        // glBindTexture(GL_TEXTURE_2D, normalMap);
+        // renderQuad();
 
 		//  Will swap the color buffer (a large buffer that contains color values for each pixel in GLFW's window) that has been used to draw in during this iteration and show it as output to the screen.
 		glfwSwapBuffers(window);
@@ -172,8 +179,8 @@ int main()
         auto ftSeconds(ft / 1000.f);
         auto fps(1.f / ftSeconds);
 
-        float currentFrame = (float)glfwGetTime();
-		deltaTime = ftStep;
+        // float currentFrame = (float)glfwGetTime();
+		// deltaTime = ftStep;
 
         std::string fps_string = windowTitle + "-FT: " + std::to_string(ft) + "\t FPS: " + std::to_string(fps);
         glfwSetWindowTitle(window, fps_string.c_str());

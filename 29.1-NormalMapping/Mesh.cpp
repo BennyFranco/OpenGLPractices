@@ -35,6 +35,14 @@ void Mesh::setupMesh()
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
+    // vertex tangent
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+    
+    // vertex bitangent
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+    
     glBindVertexArray(0);
 }
 
@@ -42,6 +50,8 @@ void Mesh::Draw(Shader shader)
 {
     GLuint diffuseNr = 1;
     GLuint specularNr = 1;
+    GLuint normalNr   = 1;
+    GLuint heightNr   = 1;
 
     for(GLuint i = 0; i < textures.size(); i++)
     {
@@ -54,6 +64,10 @@ void Mesh::Draw(Shader shader)
             number = std::to_string(diffuseNr++);
         else if(name == "texture_specular")
             number = std::to_string(specularNr++);
+        else if(name == "texture_normal")
+			number = std::to_string(normalNr++);
+        else if(name == "texture_height")
+			number = std::to_string(heightNr++); 
         
         shader.setFloat(("material."+name+number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
