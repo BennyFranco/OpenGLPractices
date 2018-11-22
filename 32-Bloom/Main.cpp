@@ -278,7 +278,7 @@ int main()
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+        
         // Blur height fragments with two-pass Gaussian Blur
         bool horizontal = true, first_iteration = true;
         unsigned int amount = 10;
@@ -287,7 +287,7 @@ int main()
         {
             glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
             shaderBlur.setInt("horizontal", horizontal);
-            glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1]:pingpongColorbuffer[!horizontal]);
+            glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[0]:pingpongColorbuffer[!horizontal]);
             renderQuad();
             horizontal = !horizontal;
             if(first_iteration)
