@@ -98,12 +98,13 @@ int main()
     GLuint woodTexture = load_texture("../images/wood.png", true);
     GLuint containerTexture = load_texture("../images/container.jpg", true);
 
-	Shader shaderGeometryPass("../shaders/g_buffer.vs", "../shaders/g_buffer.fs");
-	Shader shaderLightingPass("../shaders/deferred_shading.vs", "../shaders/deferred_shading.fs");
-	Shader shaderLightBox("../shaders/deferred_lightbox.vs", "../shaders/deferred_lightbox.fs");
+	Shader shaderGeometryPass("../shaders/g_buffer.vert", "../shaders/g_buffer.frag");
+	Shader shaderLightingPass("../shaders/deferred_shading.vert", "../shaders/deferred_shading.frag");
+	Shader shaderLightBox("../shaders/deferred_lightbox.vert", "../shaders/deferred_lightbox.frag");
 
 	// Load models
 	Model nanoSuitModel("../models/nanosuit/nanosuit.obj");
+
 	std::vector<glm::vec3> objectPositions;
 	objectPositions.push_back(glm::vec3(-3.0, -3.0, -3.0));
 	objectPositions.push_back(glm::vec3(0.0, -3.0, -3.0));
@@ -207,112 +208,75 @@ int main()
 
         ///////////////////////////////////////////////////////////////
 
-        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        shader.use();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, woodTexture);
-        for (unsigned int i = 0; i < lightPositions.size(); i++)
-        {
-            shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
-            shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
-        }
-        shader.setVec3("viewPos", camera.Position);
-        // create floor
-        glm::mat4 model = glm::mat4();
-        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
-        model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
-        shader.setMat4("model", model);
-        renderCube();
+        // 1. Geometry pass
+		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 model;
+		shaderGeometryPass.use();
+		shaderGeometryPass.setMat4("projection", projection);
+		shaderGeometryPass.setMat4("view", view);
 
-        // Create cubes
-        glBindTexture(GL_TEXTURE_2D, containerTexture);
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
-        model = glm::scale(model, glm::vec3(0.5f));
-        shader.setMat4("model", model);
-        renderCube();
+		for (unsigned int i = 0; i < objectPositions.size(); i++)
+		{
+			model = glm::mat4();
+			model = glm::translate(model, objectPositions[i]);
+			model = glm::scale(model, glm::vec3(0.25f));
+			shaderGeometryPass.setMat4("model", model);
+			nanoSuitModel.Draw(shaderGeometryPass);
+		}
 
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
-        model = glm::scale(model, glm::vec3(0.5f));
-        shader.setMat4("model", model);
-        renderCube();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
-        model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-        shader.setMat4("model", model);
-        renderCube();
+		// 2. Light pass
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shaderLightingPass.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
-        model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-        model = glm::scale(model, glm::vec3(1.25));
-        shader.setMat4("model", model);
-        renderCube();
+		for (unsigned int i = 0; i < lightPositions.size(); i++)
+		{
+			shaderLightingPass.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
+			shaderLightingPass.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
 
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
-        model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-        shader.setMat4("model", model);
-        renderCube();
+			const float constant = 1.0f;
+			const float linear = 0.7f;
+			const float quadratic = 1.8f;
 
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
-        model = glm::scale(model, glm::vec3(0.5f));
-        shader.setMat4("model", model);
-        renderCube();
+			shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Linear", linear);
+			shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Quadratic", quadratic);
+		}
 
-        shaderLight.use();
-        shaderLight.setMat4("projection", projection);
-        shaderLight.setMat4("view", view);
+		shaderLightBox.setVec3("viewPos", camera.Position);
+		renderQuad();
 
-        for(unsigned int i = 0; i < lightPositions.size(); i++)
-        {
-            model = glm::mat4();
-            model = glm::translate(model, glm::vec3(lightPositions[i]));
-            model = glm::scale(model, glm::vec3(0.25f));
-            shaderLight.setMat4("model", model);
-            shaderLight.setVec3("lightColor", lightColors[i]);
-            renderCube();
-        }
+		// copy content of geometry's buffer to defualt framebuffer's depth
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        
-        // Blur height fragments with two-pass Gaussian Blur
-        bool horizontal = true, first_iteration = true;
-        unsigned int amount = 10;
-        shaderBlur.use();
-        for(unsigned int i = 0; i < amount; i++)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
-            shaderBlur.setInt("horizontal", horizontal);
-            glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[0]:pingpongColorbuffer[!horizontal]);
-            renderQuad();
-            horizontal = !horizontal;
-            if(first_iteration)
-                first_iteration = false;
-        }
+		//Blit
+		glBlitFramebuffer(0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// 3. Render lights
+		shaderLightBox.use();
+		shaderLightBox.setMat4("projection", projection);
+		shaderLightBox.setMat4("view", view);
 
-        // Render floating point color buffer to 2D quad and tonemap HDR color to default framwbuffer's 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shaderBloomFinal.use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffer[!horizontal]);
-        shaderBloomFinal.setInt("bloom", hdr);
-        shaderBloomFinal.setFloat("exposure", exposure);
-        renderQuad();
-
-        // std::cout << "hdr: " << (hdr ? "on" : "off") << "| exposure: " << exposure << std::endl;
+		for (unsigned int i = 0; i < lightPositions.size(); i++)
+		{
+			model = glm::mat4();
+			model = glm::translate(model, lightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.125f));
+			shaderLightBox.setMat4("model", model);
+			shaderLightBox.setVec3("lightColor", lightColors[i]);
+			renderCube();
+		}
 
         ///////////////////////////////////////////////////////////////
 

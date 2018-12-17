@@ -58,7 +58,7 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 
 	// print compile erros if any
 	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-	checkCompileErrors(vertex, "VERTEX");
+	checkCompileErrors(vertex, "VERTEX", vertexPath);
 
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
@@ -66,7 +66,7 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 
 	// print compile erros if any
 	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-	checkCompileErrors(fragment, "FRAGMENT");
+	checkCompileErrors(fragment, "FRAGMENT", fragmentPath);
 
 	unsigned int geometry;
 	if(geometryPath != nullptr)
@@ -75,7 +75,7 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 		geometry = glCreateShader(GL_GEOMETRY_SHADER);
 		glShaderSource(geometry, 1, &gShaderCode, NULL);
 		glCompileShader(geometry);
-		checkCompileErrors(geometry, "GEOMETRY");
+		checkCompileErrors(geometry, "GEOMETRY", geometryPath);
 	}
 
 	// shader program
@@ -87,7 +87,7 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 	glLinkProgram(ID);
 
 	glGetProgramiv(ID, GL_LINK_STATUS, &success);
-	checkCompileErrors(ID, "PROGRAM");
+	checkCompileErrors(ID, "PROGRAM", "");
 	
 	//Delete the linked shaders
 	glDeleteShader(vertex);
@@ -133,7 +133,7 @@ void Shader::setVec3(const std::string & name, float x, float y, float z) const
 	glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 }
 
-void Shader::checkCompileErrors(GLuint shader, std::string type)
+void Shader::checkCompileErrors(GLuint shader, std::string type, const GLchar* path)
 {
 	GLint success;
 	GLchar infoLog[1024];
@@ -143,7 +143,8 @@ void Shader::checkCompileErrors(GLuint shader, std::string type)
 		if(!success)
 		{
 			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " 
+				<< "Path: "<< path << "\n -- --------------------------------------------------- -- " << std::endl;
 		}
 	}
 	else

@@ -69,14 +69,14 @@ void Mesh::Draw(Shader shader)
         else if(name == "texture_height")
 			number = std::to_string(heightNr++); 
         
-        shader.setFloat(("material."+name+number).c_str(), i);
+        shader.setFloat((name+number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
-
-    glActiveTexture(GL_TEXTURE0);
 
     // Draw mesh
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+	glActiveTexture(GL_TEXTURE0);
 }

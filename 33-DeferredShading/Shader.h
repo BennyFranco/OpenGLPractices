@@ -29,6 +29,6 @@ public:
 	void setVec3(const std::string &name, float x, float y, float z) const;
 
 private:
-	void checkCompileErrors(GLuint shader, std::string type);
+	void checkCompileErrors(GLuint shader, std::string type, const GLchar* path);
 };
 #endif // SHADER_H
