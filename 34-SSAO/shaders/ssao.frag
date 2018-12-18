@@ -19,8 +19,8 @@ const vec2 noiseScale = vec2(1280.0/4.0, 720/4.0);
 void main()
 {
     vec3 fragPos    = texture(gPosition, TexCoords).xyz;
-    vec3 normal     = texture(gNormal, TexCoords).rgb;
-    vec3 randomVec  = texture(texNoise, TexCoords * noiseScale).xyz;
+    vec3 normal     = normalize(texture(gNormal, TexCoords).rgb);
+    vec3 randomVec  = normalize(texture(texNoise, TexCoords * noiseScale).xyz);
 
     vec3 tangent    = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent  = cross(normal, tangent);
@@ -30,7 +30,7 @@ void main()
     for(int i; i < kernelSize; ++i)
     {
         vec3 sample = TBN * samples[i];
-        sample = fragPos * sample * radius;
+        sample = fragPos + sample * radius;
 
         vec4 offset = vec4(sample, 1.0);
         offset      = projection * offset;

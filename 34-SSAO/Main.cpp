@@ -100,25 +100,13 @@ int main()
     GLuint woodTexture = load_texture("../images/wood.png", true);
     GLuint containerTexture = load_texture("../images/container.jpg", true);
 
-	Shader shaderGeometryPass("../shaders/g_buffer.vert", "../shaders/g_buffer.frag");
-	Shader shaderLightingPass("../shaders/deferred_shading.vert", "../shaders/deferred_shading.frag");
-	Shader shaderLightBox("../shaders/deferred_lightbox.vert", "../shaders/deferred_lightbox.frag");
-	Shader shaderSSAO("../shaders/deferred_shading.vert", "ssao.frag");
-	Shader shaderSSAOBlur("../shaders/deferred_shading.vert", "ssao_blur.frag");
+	Shader shaderGeometryPass("shaderGeometryPass","../shaders/g_buffer.vert", "../shaders/g_buffer.frag");
+	Shader shaderLightingPass("shaderLightingPass","../shaders/deferred_shading.vert", "../shaders/deferred_shading.frag");
+	Shader shaderSSAO("shaderSSAO","../shaders/deferred_shading.vert", "../shaders/ssao.frag");
+	Shader shaderSSAOBlur("shaderSSAOBlur","../shaders/deferred_shading.vert", "../shaders/ssao_blur.frag");
 
 	// Load models
 	Model nanoSuitModel("../models/nanosuit/nanosuit.obj");
-
-	std::vector<glm::vec3> objectPositions;
-	objectPositions.push_back(glm::vec3(-3.0, -3.0, -3.0));
-	objectPositions.push_back(glm::vec3(0.0, -3.0, -3.0));
-	objectPositions.push_back(glm::vec3(3.0, -3.0, -3.0));
-	objectPositions.push_back(glm::vec3(-3.0, -3.0, 0.0));
-	objectPositions.push_back(glm::vec3(0.0, -3.0, 0.0));
-	objectPositions.push_back(glm::vec3(3.0, -3.0, 0.0));
-	objectPositions.push_back(glm::vec3(-3.0, -3.0, 3.0));
-	objectPositions.push_back(glm::vec3(0.0, -3.0, 3.0));
-	objectPositions.push_back(glm::vec3(3.0, -3.0, 3.0));
 
 	GLuint gBuffer;
 	glGenFramebuffers(1, &gBuffer);
@@ -205,7 +193,7 @@ int main()
 	GLuint noiseTexture;
 	glGenTextures(1, &noiseTexture);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -222,6 +210,7 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
 
 	GLuint ssaoBlurFBO, ssaoColorBufferBlur;
 	glGenFramebuffers(1, &ssaoBlurFBO);
@@ -234,28 +223,19 @@ int main()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
 
     // lighting info
-	const unsigned int NR_LIGHTS = 32;
-    std::vector<glm::vec3> lightPositions;
-	std::vector<glm::vec3> lightColors;
-	srand(13);
-
-	for (unsigned int i = 0; i < NR_LIGHTS; i++)
-	{
-		float xPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
-		float yPos = ((rand() % 100) / 100.0) * 6.0 - 4.0;
-		float zPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
-		lightPositions.push_back(glm::vec3(xPos, yPos, zPos));
-
-		float rColor = ((rand() % 100) / 200.0f) + 0.5;
-		float gColor = ((rand() % 100) / 200.0f) + 0.5;
-		float bColor = ((rand() % 100) / 200.0f) + 0.5;
-		lightColors.push_back(glm::vec3(rColor, gColor, bColor));
-	}
+	glm::vec3 lightPos = glm::vec3(2.0, 4.0, -2.0);
+	glm::vec3 lightColor = glm::vec3(0.2, 0.2, 0.7);
 
 	shaderLightingPass.use();
 	shaderLightingPass.setInt("gPosition", 0);
 	shaderLightingPass.setInt("gNormal", 1);
 	shaderLightingPass.setInt("gAlbedoSpec", 2);
+	shaderSSAO.use();
+	shaderSSAO.setInt("gPosition", 0);
+	shaderSSAO.setInt("gNormal", 1);
+	shaderSSAO.setInt("texNoise", 2);
+	shaderSSAOBlur.use();
+	shaderSSAOBlur.setInt("ssaoInput", 0);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -290,75 +270,77 @@ int main()
 		shaderGeometryPass.setMat4("projection", projection);
 		shaderGeometryPass.setMat4("view", view);
 
-		for (unsigned int i = 0; i < objectPositions.size(); i++)
-		{
-			model = glm::mat4();
-			model = glm::translate(model, objectPositions[i]);
-			model = glm::scale(model, glm::vec3(0.25f));
-			shaderGeometryPass.setMat4("model", model);
-			nanoSuitModel.Draw(shaderGeometryPass);
-		}
+		// room
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(0.0, 7.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(7.5f));
+		shaderGeometryPass.setMat4("model", model);
+		shaderGeometryPass.setInt("invertedNormals", 1);
+		renderCube();
+		shaderGeometryPass.setInt("invertedNormals", 0);
+
+		// nanosuit
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 5.0f));
+		model = glm::rotate(model, glm::radians(-90.f), glm::vec3(1.0, 0.0, 0.0));
+		model = glm::scale(model, glm::vec3(0.5f));
+		shaderGeometryPass.setMat4("model", model);
+		nanoSuitModel.Draw(shaderGeometryPass);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// 1.1 SSAO
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
+		shaderSSAO.use();
+		for (unsigned int i = 0; i < 64; ++i)
+		{
+			shaderSSAO.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
+		}
+		shaderSSAO.setMat4("projection", projection);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, gPosition);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, gNormal);
 		glActiveTexture(GL_TEXTURE2);
-		// glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
 		glBindTexture(GL_TEXTURE_2D, noiseTexture);
-		shaderSSAO.use();
-		// SendKernelSamplesToShader();
-		shaderSSAO.setMat4("projection", projection);
+		renderQuad();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// 1.2 blur SSAO
+		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+		glClear(GL_COLOR_BUFFER_BIT);
+		shaderSSAOBlur.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+		renderQuad();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// 2. Light pass
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shaderLightingPass.use();
 
-		for (unsigned int i = 0; i < lightPositions.size(); i++)
-		{
-			shaderLightingPass.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
-			shaderLightingPass.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
+		glm::vec3 lightPosView = glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0));
+		shaderLightingPass.setVec3("light.Position", lightPosView);
+		shaderLightingPass.setVec3("light.Color", lightColor);
+		const float constant = 1.0f;
+		const float linear = 0.09f;
+		const float quadratic = 0.032f;
 
-			const float constant = 1.0f;
-			const float linear = 0.7f;
-			const float quadratic = 1.8f;
+		shaderLightingPass.setFloat("light.Linear", linear);
+		shaderLightingPass.setFloat("light.Quadratic", quadratic);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
 
-			shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Linear", linear);
-			shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Quadratic", quadratic);
-		}
-
-		shaderLightBox.setVec3("viewPos", camera.Position);
 		renderQuad();
-
-		// copy content of geometry's buffer to defualt framebuffer's depth
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-		//Blit
-		glBlitFramebuffer(0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// 3. Render lights
-		shaderLightBox.use();
-		shaderLightBox.setMat4("projection", projection);
-		shaderLightBox.setMat4("view", view);
-
-		for (unsigned int i = 0; i < lightPositions.size(); i++)
-		{
-			model = glm::mat4();
-			model = glm::translate(model, lightPositions[i]);
-			model = glm::scale(model, glm::vec3(0.125f));
-			shaderLightBox.setMat4("model", model);
-			shaderLightBox.setVec3("lightColor", lightColors[i]);
-			renderCube();
-		}
 
         ///////////////////////////////////////////////////////////////
 

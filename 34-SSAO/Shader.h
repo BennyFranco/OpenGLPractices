@@ -18,8 +18,9 @@ class Shader
 {
 public:
 	GLuint ID;		// the program ID
+	std::string m_Alias;
 
-	Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr); // Constructor reads and builds the shader
+	Shader(const GLchar* shaderAlias, const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr); // Constructor reads and builds the shader
 	void use(); // use/active the shader
 	void setBool(const std::string &name, bool value) const;
 	void setInt(const std::string &name, int value) const;

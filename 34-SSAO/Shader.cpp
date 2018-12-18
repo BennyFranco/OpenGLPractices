@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLchar* geometryPath)
+Shader::Shader(const GLchar* shaderAlias, const GLchar * vertexPath, const GLchar * fragmentPath, const GLchar* geometryPath)
 {
 	// 1. Retrive the vertex/fragment source code from file path.
 	std::string		vertexCode;
@@ -14,10 +14,12 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
+	m_Alias = shaderAlias;
+
 	try
 	{
-		vShaderFile.open(vertexPath);
-		fShaderFile.open(fragmentPath);
+		vShaderFile.open(vertexPath, std::ios::in);
+		fShaderFile.open(fragmentPath, std::ios::in);
 		std::stringstream vShaderStream, fShaderStream;
 
 		vShaderStream << vShaderFile.rdbuf();
@@ -87,7 +89,7 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath, const GLc
 	glLinkProgram(ID);
 
 	glGetProgramiv(ID, GL_LINK_STATUS, &success);
-	checkCompileErrors(ID, "PROGRAM", "");
+	checkCompileErrors(ID, "PROGRAM", vertexPath);
 	
 	//Delete the linked shaders
 	glDeleteShader(vertex);
@@ -153,7 +155,8 @@ void Shader::checkCompileErrors(GLuint shader, std::string type, const GLchar* p
 		if(!success)
 		{
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " 
+				<< "ALIAS: " << m_Alias << std::endl;
 		}
 	}
 }
