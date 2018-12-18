@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <random>
 
 #include "Shader.h"
 #include "Camera.h"
@@ -26,7 +27,7 @@ float lastFrame = 0.0f;
 
 // Frametime calculations
 constexpr float ftStep{0.1f}, ftSlice{0.1f};
-std::string windowTitle("Deferred Shading");
+std::string windowTitle("SSAO");
 
 float lastX = WIDTH / 2, lastY = HEIGHT / 2;
 bool firstMouse = true;
@@ -49,6 +50,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 GLuint load_texture(const char *path, bool gammaCorrection);
 void renderCube();
 void renderQuad();
+float lerp(float a, float b, float f);
 
 int main()
 {
@@ -101,6 +103,8 @@ int main()
 	Shader shaderGeometryPass("../shaders/g_buffer.vert", "../shaders/g_buffer.frag");
 	Shader shaderLightingPass("../shaders/deferred_shading.vert", "../shaders/deferred_shading.frag");
 	Shader shaderLightBox("../shaders/deferred_lightbox.vert", "../shaders/deferred_lightbox.frag");
+	Shader shaderSSAO("../shaders/deferred_shading.vert", "ssao.frag");
+	Shader shaderSSAOBlur("../shaders/deferred_shading.vert", "ssao_blur.frag");
 
 	// Load models
 	Model nanoSuitModel("../models/nanosuit/nanosuit.obj");
@@ -135,6 +139,8 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 
 	// color + specular color buffer
@@ -160,6 +166,72 @@ int main()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Normal oriented hemisphere
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+	std::default_random_engine generator;
+	std::vector<glm::vec3> ssaoKernel;
+	for (unsigned int i = 0; i < 64; ++i)
+	{
+		glm::vec3 sample(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator)
+		);
+
+		sample = glm::normalize(sample);
+		sample *= randomFloats(generator);
+
+		float scale = (float)i / 64.0;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		ssaoKernel.push_back(sample);
+	}
+
+	// Random kernel rotations
+	std::vector<glm::vec3> ssaoNoise;
+	for (unsigned int i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			0.0f
+		);
+
+		ssaoNoise.push_back(noise);
+	}
+
+	// SSAO Noise texture
+	GLuint noiseTexture;
+	glGenTextures(1, &noiseTexture);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// SSAO
+	GLuint ssaoFBO;
+	glGenFramebuffers(1, &ssaoFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+
+	GLuint ssaoColorBuffer;
+	glGenTextures(1, &ssaoColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	GLuint ssaoBlurFBO, ssaoColorBufferBlur;
+	glGenFramebuffers(1, &ssaoBlurFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+	glGenTextures(1, &ssaoColorBufferBlur);
+	glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
 
     // lighting info
 	const unsigned int NR_LIGHTS = 32;
@@ -229,15 +301,25 @@ int main()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// 2. Light pass
+		// 1.1 SSAO
+		glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shaderLightingPass.use();
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, gPosition);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, gNormal);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+		// glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+		glBindTexture(GL_TEXTURE_2D, noiseTexture);
+		shaderSSAO.use();
+		// SendKernelSamplesToShader();
+		shaderSSAO.setMat4("projection", projection);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// 2. Light pass
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shaderLightingPass.use();
 
 		for (unsigned int i = 0; i < lightPositions.size(); i++)
 		{
@@ -537,4 +619,9 @@ GLuint load_texture(const char *path, bool gammaCorrection)
     }
 
     return textureID;
+}
+
+float lerp(float a, float b, float f)
+{
+	return a + f * (b - a);
 }
